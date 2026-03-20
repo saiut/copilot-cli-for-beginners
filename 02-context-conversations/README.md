@@ -1,82 +1,82 @@
 ![Chapter 02: Context and Conversations](images/chapter-header.png)
 
-> **What if AI could see your entire codebase, not just one file at a time?**
+> **もし AI が1ファイルだけでなく、コードベース全体を見渡せるとしたら？**
 
-In this chapter, you'll unlock the real power of GitHub Copilot CLI: context. You'll learn to use the `@` syntax to reference files and directories, giving Copilot CLI deep understanding of your codebase. You'll discover how to maintain conversations across sessions, resume work days later exactly where you left off, and see how cross-file analysis catches bugs that single-file reviews miss entirely.
+この章では、GitHub Copilot CLI の真の力である「コンテキスト」を解き放ちます。`@` 構文を使ってファイルやディレクトリを参照し、Copilot CLI にコードベースの深い理解を与える方法を学びます。セッションをまたいで会話を維持し、数日後に中断したところから正確に再開する方法、そしてクロスファイル分析が単一ファイルのレビューでは見落とすバグをどのように検出するかを見ていきます。
 
-## 🎯 Learning Objectives
+## 🎯 学習目標
 
-By the end of this chapter, you'll be able to:
+この章を終えると、以下のことができるようになります：
 
-- Use the `@` syntax to reference files, directories, and images
-- Resume previous sessions with `--resume` and `--continue`
-- Understand how [context windows](../GLOSSARY.md#context-window) work
-- Write effective multi-turn conversations
-- Manage directory permissions for multi-project workflows
+- `@` 構文を使ってファイル、ディレクトリ、画像を参照する
+- `--resume` と `--continue` で以前のセッションを再開する
+- [context window](../GLOSSARY.md#context-window) の仕組みを理解する
+- 効果的なマルチターン会話を書く
+- マルチプロジェクトワークフローのためのディレクトリ権限を管理する
 
-> ⏱️ **Estimated Time**: ~50 minutes (20 min reading + 30 min hands-on)
+> ⏱️ **所要時間の目安**: 約50分（読み物20分 + ハンズオン30分）
 
 ---
 
-## 🧩 Real-World Analogy: Working with a Colleague
+## 🧩 現実世界のたとえ：同僚との仕事
 
 <img src="images/colleague-context-analogy.png" alt="Context Makes the Difference - Without vs With Context" width="800"/>
 
-*Just like your colleagues, Copilot CLI isn't a mind reader. Providing more information helps humans and Copilot alike provide targeted support!*
+*同僚と同じように、Copilot CLI も読心術は使えません。より多くの情報を提供すれば、人間も Copilot も的確なサポートができるようになります！*
 
-Imagine explaining a bug to a colleague:
+同僚にバグを説明する場面を想像してみてください：
 
-> **Without context**: "The book app doesn't work."
+> **コンテキストなし**：「ブックアプリが動かないんだけど。」
 
-> **With context**: "Look at `books.py`, especially the `find_book_by_title` function. It's not doing case-insensitive matching."
+> **コンテキストあり**：「`books.py` を見て、特に `find_book_by_title` 関数。大文字小文字を区別しないマッチングができていないんだ。」
 
-To provide context to Copilot CLI use *the `@` syntax* to point Copilot CLI at specific files.
+Copilot CLI にコンテキストを提供するには、*`@` 構文* を使って Copilot CLI に特定のファイルを指し示します。
 
 ---
 
-# Essential: Basic Context
+# 基本編：基本的なコンテキスト
 
 <img src="images/essential-basic-context.png" alt="Glowing code blocks connected by light trails representing how context flows through Copilot CLI conversations" width="800"/>
 
-This section covers everything you need to work effectively with context. Master these basics first.
+このセクションでは、コンテキストを効果的に使うために必要なすべてをカバーします。まずはこの基本をマスターしましょう。
 
 ---
 
-## The @ Syntax
+## @ 構文
 
-The `@` symbol references files and directories in your prompts. It's how you tell Copilot CLI "look at this file."
+`@` シンボルは、プロンプト内でファイルやディレクトリを参照するために使います。Copilot CLI に「このファイルを見て」と伝える方法です。
 
-> 💡 **Note**: All examples in this course use the `samples/` folder included in this repository, so you can try every command directly.
+> 💡 **メモ**: このコースのすべての例はリポジトリに含まれる `samples/` フォルダを使用しているので、すべてのコマンドをそのまま試すことができます。
 
-### Try It Now (No Setup Required)
+### 今すぐ試してみよう（セットアップ不要）
 
-You can try this with any file on your computer:
+お使いのコンピュータにあるどんなファイルでも試すことができます：
 
 ```bash
 copilot
 
-# Point at any file you have
+# 手元にあるファイルを指定してみましょう
 > Explain what @package.json does
 > Summarize @README.md
 > What's in @.gitignore and why?
 ```
 
-> 💡 **Don't have a project handy?** Create a quick test file:
+> 💡 **手元にプロジェクトがない場合は？** テストファイルをサッと作りましょう：
 > ```bash
 > echo "def greet(name): return 'Hello ' + name" > test.py
 > copilot
 > > What does @test.py do?
 > ```
 
-### Basic @ Patterns
+### 基本的な @ パターン
 
-| Pattern | What It Does | Example Use |
-|---------|--------------|-------------|
-| `@file.py` | Reference a single file | `Review @samples/book-app-project/books.py` |
-| `@folder/` | Reference all files in a directory | `Review @samples/book-app-project/` |
-| `@file1.py @file2.py` | Reference multiple files | `Compare @samples/book-app-project/book_app.py @samples/book-app-project/books.py` |
+| パターン | 機能 | 使用例 |
+|---------|------|--------|
+| `@file.py` | 単一ファイルを参照 | `Review @samples/book-app-project/books.py` |
+| `@folder/` | ディレクトリ内のすべてのファイルを参照 | `Review @samples/book-app-project/` |
+| `@file1.py @file2.py` | 複数ファイルを参照 | `Compare @samples/book-app-project/book_app.py @samples/book-app-project/books.py` |
 
-### Reference a Single File
+### 単一ファイルを参照する
 
 ```bash
 copilot
@@ -87,17 +87,17 @@ copilot
 ---
 
 <details>
-<summary>🎬 See it in action!</summary>
+<summary>🎬 実際の動作を見てみましょう！</summary>
 
 ![File Context Demo](images/file-context-demo.gif)
 
-*Demo output varies. Your model, tools, and responses will differ from what's shown here.*
+*デモの出力は実行ごとに異なります。モデル、ツール、レスポンスはここに表示されているものとは違う場合があります。*
 
 </details>
 
 ---
 
-### Reference Multiple Files
+### 複数ファイルを参照する
 
 ```bash
 copilot
@@ -105,7 +105,7 @@ copilot
 > Compare @samples/book-app-project/book_app.py and @samples/book-app-project/books.py for consistency
 ```
 
-### Reference an Entire Directory
+### ディレクトリ全体を参照する
 
 ```bash
 copilot
@@ -115,13 +115,13 @@ copilot
 
 ---
 
-## Cross-File Intelligence
+## クロスファイルインテリジェンス
 
-This is where context becomes a superpower. Single-file analysis is useful. Cross-file analysis is transformative.
+ここからコンテキストが超能力になります。単一ファイルの分析は便利ですが、クロスファイル分析は革命的です。
 
 <img src="images/cross-file-intelligence.png" alt="Cross-File Intelligence - comparing single-file vs cross-file analysis showing how analyzing files together reveals bugs, data flow, and patterns invisible in isolation" width="800"/>
 
-### Demo: Find Bugs That Span Multiple Files
+### デモ：複数ファイルにまたがるバグを見つける
 
 ```bash
 copilot
@@ -131,7 +131,7 @@ copilot
 > How do these files work together? What's the data flow?
 ```
 
-> 💡 **Advanced Option**: For security-focused cross-file analysis, try the Python security examples:
+> 💡 **上級者向けオプション**: セキュリティに焦点を当てたクロスファイル分析には、Python セキュリティの例を試してみてください：
 > ```bash
 > > @samples/buggy-code/python/user_service.py @samples/buggy-code/python/payment_processor.py
 > > Find security vulnerabilities that span BOTH files
@@ -140,54 +140,54 @@ copilot
 ---
 
 <details>
-<summary>🎬 See it in action!</summary>
+<summary>🎬 実際の動作を見てみましょう！</summary>
 
 ![Multi-File Demo](images/multi-file-demo.gif)
 
-*Demo output varies. Your model, tools, and responses will differ from what's shown here.*
+*デモの出力は実行ごとに異なります。モデル、ツール、レスポンスはここに表示されているものとは違う場合があります。*
 
 </details>
 
 ---
 
-**What Copilot CLI discovers**:
+**Copilot CLI が発見する内容**：
 
 ```
-Cross-Module Analysis
+クロスモジュール分析
 =====================
 
-1. DATA FLOW PATTERN
-   book_app.py creates BookCollection instance and calls methods
-   books.py defines BookCollection class and manages data persistence
+1. データフローパターン
+   book_app.py が BookCollection インスタンスを作成してメソッドを呼び出す
+   books.py が BookCollection クラスを定義してデータの永続化を管理する
 
-   Flow: book_app.py (UI) → books.py (business logic) → data.json (storage)
+   フロー: book_app.py (UI) → books.py (ビジネスロジック) → data.json (ストレージ)
 
-2. DUPLICATE DISPLAY FUNCTIONS
-   book_app.py:9-21    show_books() function
-   utils.py:28-36      print_books() function
+2. 重複する表示関数
+   book_app.py:9-21    show_books() 関数
+   utils.py:28-36      print_books() 関数
 
-   Impact: Two nearly identical functions doing the same thing. If you update
-   one (like changing the format), you must remember to update the other.
+   影響: ほぼ同一の関数が2つ同じことをしている。一方を更新（フォーマットの変更など）
+   した場合、もう一方も更新する必要がある。
 
-3. INCONSISTENT ERROR HANDLING
-   book_app.py handles ValueError from year conversion
-   books.py silently returns None/False on errors
+3. 一貫性のないエラーハンドリング
+   book_app.py は年の変換で ValueError をハンドリングしている
+   books.py はエラー時に暗黙的に None/False を返している
 
-   Pattern: No unified approach to error handling across modules
+   パターン: モジュール間でエラーハンドリングの統一されたアプローチがない
 ```
 
-**Why this matters**: A single-file review would miss the bigger picture. Only cross-file analysis reveals:
-- **Duplicate code** that should be consolidated
-- **Data flow patterns** showing how components interact
-- **Architectural issues** that affect maintainability
+**なぜこれが重要か**: 単一ファイルのレビューでは全体像を見落としてしまいます。クロスファイル分析だけが以下を明らかにします：
+- 統合すべき**重複コード**
+- コンポーネント間の相互作用を示す**データフローパターン**
+- 保守性に影響する**アーキテクチャ上の問題**
 
 ---
 
-### Demo: Understand a Codebase in 60 Seconds
+### デモ：60秒でコードベースを理解する
 
 <img src="images/codebase-understanding.png" alt="Split-screen comparison showing manual code review taking 1 hour versus AI-assisted analysis taking 10 seconds" width="800" />
 
-New to a project? Learn about it quickly using Copilot CLI.
+プロジェクトに初めて触れますか？Copilot CLI を使って素早く把握しましょう。
 
 ```bash
 copilot
@@ -197,69 +197,69 @@ copilot
 > In one paragraph, what does this app do and what are its biggest quality issues?
 ```
 
-**What you get**:
+**得られる結果**：
 ```
-This is a CLI book collection manager that lets users add, list, remove, and
-search books stored in a JSON file. The biggest quality issues are:
+これは CLI ベースの書籍コレクション管理ツールで、JSON ファイルに保存された書籍の
+追加、一覧表示、削除、検索ができます。最大の品質上の問題点は：
 
-1. Duplicate display logic - show_books() and print_books() do the same thing
-2. Inconsistent error handling - some errors raise exceptions, others return False
-3. No input validation - year can be 0, empty strings accepted for title/author
-4. Missing tests - no test coverage for critical functions like find_book_by_title
+1. 表示ロジックの重複 - show_books() と print_books() が同じことをしている
+2. 一貫性のないエラーハンドリング - 例外を投げるものとFalseを返すものが混在
+3. 入力バリデーションなし - year に0が入り、title/author に空文字列が許容される
+4. テスト不足 - find_book_by_title などの重要な関数にテストカバレッジがない
 
-Priority fix: Consolidate duplicate display functions and add input validation.
+優先修正: 重複する表示関数の統合と入力バリデーションの追加。
 ```
 
-**Result**: What takes an hour of code reading compressed into 10 seconds. You know exactly where to focus.
+**結果**: コードを1時間かけて読む作業が10秒に圧縮されます。どこに注力すべきか正確にわかります。
 
 ---
 
-## Practical Examples
+## 実践的な例
 
-### Example 1: Code Review with Context
+### 例1: コンテキスト付きコードレビュー
 
 ```bash
 copilot
 
 > @samples/book-app-project/books.py Review this file for potential bugs
 
-# Copilot CLI now has the full file content and can give specific feedback:
-# "Line 49: Case-sensitive comparison may miss books..."
-# "Line 29: JSON decode errors are caught but data corruption isn't logged..."
+# Copilot CLI がファイルの全内容を把握し、具体的なフィードバックを返します：
+# "49行目: 大文字小文字を区別する比較で、書籍を見つけられない可能性が..."
+# "29行目: JSON デコードエラーはキャッチされているが、データ破損はログに記録されていない..."
 
 > What about @samples/book-app-project/book_app.py?
 
-# Now reviewing book_app.py, but still aware of books.py context
+# book_app.py をレビューしつつ、books.py のコンテキストも把握した状態で
 ```
 
-### Example 2: Understanding a Codebase
+### 例2: コードベースの理解
 
 ```bash
 copilot
 
 > @samples/book-app-project/books.py What does this module do?
 
-# Copilot CLI reads books.py and understands the BookCollection class
+# Copilot CLI が books.py を読み込み、BookCollection クラスを理解します
 
 > @samples/book-app-project/ Give me an overview of the code structure
 
-# Copilot CLI scans the directory and summarizes
+# Copilot CLI がディレクトリをスキャンして要約します
 
 > How does the app save and load books?
 
-# Copilot CLI can trace through the code it's already seen
+# Copilot CLI は既に見たコードをたどって追跡できます
 ```
 
 <details>
-<summary>🎬 See a multi-turn conversation in action!</summary>
+<summary>🎬 マルチターン会話の実際の動作を見てみましょう！</summary>
 
 ![Multi-Turn Demo](images/multi-turn-demo.gif)
 
-*Demo output varies. Your model, tools, and responses will differ from what's shown here.*
+*デモの出力は実行ごとに異なります。モデル、ツール、レスポンスはここに表示されているものとは違う場合があります。*
 
 </details>
 
-### Example 3: Multi-File Refactoring
+### 例3: マルチファイルリファクタリング
 
 ```bash
 copilot
@@ -267,70 +267,70 @@ copilot
 > @samples/book-app-project/book_app.py @samples/book-app-project/utils.py
 > I see duplicate display functions: show_books() and print_books(). Help me consolidate these.
 
-# Copilot CLI sees both files and can suggest how to merge the duplicate code
+# Copilot CLI が両方のファイルを見て、重複コードの統合方法を提案します
 ```
 
 ---
 
-## Session Management
+## セッション管理
 
-Sessions are automatically saved as you work. You can resume previous sessions to continue where you left off.
+セッションは作業中に自動的に保存されます。以前のセッションを再開して、中断したところから続けることができます。
 
-### Sessions Auto-Save
+### セッションの自動保存
 
-Every conversation is automatically saved. Just exit normally:
+すべての会話は自動的に保存されます。通常通り終了するだけです：
 
 ```bash
 copilot
 
 > @samples/book-app-project/ Let's improve error handling across all modules
 
-[... do some work ...]
+[... 作業を行う ...]
 
 > /exit
 ```
 
-### Resume the Most Recent Session
+### 最新のセッションを再開する
 
 ```bash
-# Continue where you left off
+# 中断したところから続ける
 copilot --continue
 ```
 
-### Resume a Specific Session
+### 特定のセッションを再開する
 
 ```bash
-# Pick from a list of sessions interactively
+# セッション一覧からインタラクティブに選ぶ
 copilot --resume
 
-# Or resume a specific session by ID
+# または特定のセッション ID で再開する
 copilot --resume abc123
 ```
 
-> 💡 **How do I find a session ID?** You don't need to memorize them. Running `copilot --resume` without an ID shows an interactive list of your previous sessions, their names, IDs, and when they were last active. Just pick the one you want.
+> 💡 **セッション ID はどうやって調べるの？** 暗記する必要はありません。ID を指定せずに `copilot --resume` を実行すると、以前のセッションの一覧がインタラクティブに表示され、名前、ID、最終アクティブ日時が確認できます。使いたいセッションを選ぶだけです。
 >
-> **What about multiple terminals?** Each terminal window is its own session with its own context. If you have Copilot CLI open in three terminals, that's three separate sessions. Running `--resume` from any terminal lets you browse all of them. The `--continue` flag grabs whichever session was closed most recently, no matter which terminal it was in.
+> **複数のターミナルがある場合は？** 各ターミナルウィンドウはそれぞれ独立したセッションとコンテキストを持ちます。3つのターミナルで Copilot CLI を開いている場合、3つの別々のセッションがあります。どのターミナルから `--resume` を実行しても、すべてのセッションを閲覧できます。`--continue` フラグは、どのターミナルで閉じたかに関係なく、最も最近閉じたセッションを取得します。
 >
-> **Can I switch sessions without restarting?** Yes. Use the `/resume` slash command from inside an active session:
+> **再起動せずにセッションを切り替えられる？** はい。アクティブなセッション内で `/resume` スラッシュコマンドを使います：
 > ```
 > > /resume
-> # Shows a list of sessions to switch to
+> # 切り替え先のセッション一覧が表示されます
 > ```
 
-### Organize Your Sessions
+### セッションを整理する
 
-Give sessions meaningful names so you can find them later:
+後から見つけやすいように、セッションにわかりやすい名前を付けましょう：
 
 ```bash
 copilot
 
 > /rename book-app-review
-# Session renamed for easier identification
+# セッション名が変更され、識別しやすくなります
 ```
 
-### Check and Manage Context
+### コンテキストの確認と管理
 
-As you add files and conversation, Copilot CLI's [context window](../GLOSSARY.md#context-window) fills up. Two commands help you stay in control:
+ファイルや会話を追加するにつれて、Copilot CLI の [context window](../GLOSSARY.md#context-window) が埋まっていきます。2つのコマンドでコントロールできます：
 
 ```bash
 copilot
@@ -339,100 +339,100 @@ copilot
 Context usage: 45,000 / 128,000 tokens (35%)
 
 > /clear
-# Wipes context and starts fresh. Use when switching topics
+# コンテキストを消去してやり直します。トピックを切り替えるときに使いましょう
 ```
 
-> 💡 **When to use `/clear`**: If you've been reviewing `books.py` and want to switch to discussing `utils.py`, run `/clear` first. Otherwise stale context from the old topic may confuse responses.
+> 💡 **`/clear` を使うタイミング**: `books.py` のレビューをしていて `utils.py` の話に切り替えたい場合は、先に `/clear` を実行しましょう。そうしないと、以前のトピックの古いコンテキストがレスポンスを混乱させる可能性があります。
 
 ---
 
-### Pick Up Where You Left Off
+### 中断したところから再開する
 
 <img src="images/session-persistence-timeline.png" alt="Timeline showing how GitHub Copilot CLI sessions persist across days - start on Monday, resume on Wednesday with full context restored" width="800"/>
 
-*Sessions auto-save when you exit. Resume days later with full context: files, issues, and progress all remembered.*
+*セッションは終了時に自動保存されます。数日後にフルコンテキストで再開：ファイル、問題点、進捗すべてが記憶されています。*
 
-Imagine this workflow across multiple days:
+複数日にわたるワークフローを想像してみてください：
 
 ```bash
-# Monday: Start book app review
+# 月曜日: ブックアプリのレビューを開始
 copilot
 
 > /rename book-app-review
 > @samples/book-app-project/books.py
 > Review and number all code quality issues
 
-Quality Issues Found:
-1. Duplicate display functions (book_app.py & utils.py) - MEDIUM
-2. No input validation for empty strings - MEDIUM
-3. Year can be 0 or negative - LOW
-4. No type hints on all functions - LOW
-5. Missing error logging - LOW
+発見された品質問題:
+1. 重複する表示関数 (book_app.py & utils.py) - 中
+2. 空文字列の入力バリデーションなし - 中
+3. year に 0 や負数が入る - 低
+4. すべての関数に型ヒントがない - 低
+5. エラーログが欠落 - 低
 
 > Fix issue #1 (duplicate functions)
-# Work on the fix...
+# 修正に取り組む...
 
 > /exit
 ```
 
 ```bash
-# Wednesday: Resume exactly where you left off
+# 水曜日: 中断したところから正確に再開
 copilot --continue
 
 > What issues remain unfixed from our book app review?
 
-Remaining issues from our book-app-review session:
-2. No input validation for empty strings - MEDIUM
-3. Year can be 0 or negative - LOW
-4. No type hints on all functions - LOW
-5. Missing error logging - LOW
+ブックアプリレビューの未修正の問題:
+2. 空文字列の入力バリデーションなし - 中
+3. year に 0 や負数が入る - 低
+4. すべての関数に型ヒントがない - 低
+5. エラーログが欠落 - 低
 
-Issue #1 (duplicate functions) was fixed on Monday.
+問題 #1 (重複関数) は月曜日に修正済み。
 
 > Let's tackle issue #2 next
 ```
 
-**What makes this powerful**: Days later, Copilot CLI remembers:
-- The exact file you were working on
-- The numbered list of issues
-- Which ones you've already addressed
-- The context of your conversation
+**これが強力な理由**: 数日後でも、Copilot CLI は以下を記憶しています：
+- 作業していた正確なファイル
+- 番号付きの問題リスト
+- どの問題が既に対処済みか
+- 会話のコンテキスト
 
-No re-explaining. No re-reading files. Just continue working.
-
----
-
-**🎉 You now know the essentials!** The `@` syntax, session management (`--continue`/`--resume`/`/rename`), and context commands (`/context`/`/clear`) are enough to be highly productive. Everything below is optional. Return to it when you're ready.
+再度説明する必要なし。ファイルを再度読み直す必要なし。ただ作業を続けるだけです。
 
 ---
 
-# Optional: Going Deeper
+**🎉 基本をマスターしました！** `@` 構文、セッション管理（`--continue`/`--resume`/`/rename`）、コンテキストコマンド（`/context`/`/clear`）だけで十分に生産性が高まります。以下はすべてオプションです。準備ができたら戻ってきてください。
+
+---
+
+# オプション：さらに深く学ぶ
 
 <img src="images/optional-going-deeper.png" alt="Abstract crystal cave in blue and purple tones representing deeper exploration of context concepts" width="800"/>
 
-These topics build on the essentials above. **Pick what interests you, or skip ahead to [Practice](#practice).**
+これらのトピックは上記の基本の上に構築されています。**興味のあるものを選ぶか、[実践練習](#practice) まで飛ばしてください。**
 
-| I want to learn about... | Jump to |
+| 学びたいこと... | ジャンプ先 |
 |---|---|
-| Wildcard patterns and advanced session commands | [Additional @ Patterns & Session Commands](#additional-patterns) |
-| Building on context across multiple prompts | [Context-Aware Conversations](#context-aware-conversations) |
-| Token limits and `/compact` | [Understanding Context Windows](#understanding-context-windows) |
-| How to pick the right files to reference | [Choosing What to Reference](#choosing-what-to-reference) |
-| Analyzing screenshots and mockups | [Working with Images](#working-with-images) |
+| ワイルドカードパターンと高度なセッションコマンド | [追加の @ パターンとセッションコマンド](#additional-patterns) |
+| 複数のプロンプトにまたがるコンテキスト構築 | [コンテキストアウェアな会話](#context-aware-conversations) |
+| トークン制限と `/compact` | [context window を理解する](#understanding-context-windows) |
+| 参照すべきファイルの選び方 | [何を参照すべきか選ぶ](#choosing-what-to-reference) |
+| スクリーンショットやモックアップの分析 | [画像を扱う](#working-with-images) |
 
 <details>
-<summary><strong>Additional @ Patterns & Session Commands</strong></summary>
+<summary><strong>追加の @ パターンとセッションコマンド</strong></summary>
 <a id="additional-patterns"></a>
 
-### Additional @ Patterns
+### 追加の @ パターン
 
-For power users, Copilot CLI supports wildcard patterns and image references:
+パワーユーザー向けに、Copilot CLI はワイルドカードパターンと画像参照をサポートしています：
 
-| Pattern | What It Does |
-|---------|--------------|
-| `@folder/*.py` | All .py files in folder |
-| `@**/test_*.py` | Recursive wildcard: find all test files anywhere |
-| `@image.png` | Image file for UI review |
+| パターン | 機能 |
+|---------|------|
+| `@folder/*.py` | フォルダ内のすべての .py ファイル |
+| `@**/test_*.py` | 再帰ワイルドカード：任意の場所にあるすべてのテストファイルを検索 |
+| `@image.png` | UI レビュー用の画像ファイル |
 
 ```bash
 copilot
@@ -440,87 +440,87 @@ copilot
 > Find all TODO comments in @samples/book-app-project/**/*.py
 ```
 
-### View Session Info
+### セッション情報の表示
 
 ```bash
 copilot
 
 > /session
-# Shows current session details and workspace summary
+# 現在のセッション詳細とワークスペースの概要を表示します
 
 > /usage
-# Shows session metrics and statistics
+# セッションのメトリクスと統計情報を表示します
 ```
 
-### Share Your Session
+### セッションの共有
 
 ```bash
 copilot
 
 > /share file ./my-session.md
-# Exports session as a markdown file
+# セッションを Markdown ファイルとしてエクスポートします
 
 > /share gist
-# Creates a GitHub gist with the session
+# セッションの内容で GitHub gist を作成します
 ```
 
 </details>
 
 <details>
-<summary><strong>Context-Aware Conversations</strong></summary>
+<summary><strong>コンテキストアウェアな会話</strong></summary>
 <a id="context-aware-conversations"></a>
 
-### Context-Aware Conversations
+### コンテキストアウェアな会話
 
-The magic happens when you have multi-turn conversations that build on each other.
+マルチターンの会話が互いに積み上がっていくとき、魔法が起こります。
 
-#### Example: Progressive Enhancement
+#### 例：段階的な改善
 
 ```bash
 copilot
 
 > @samples/book-app-project/books.py Review the BookCollection class
 
-Copilot CLI: "The class looks functional, but I notice:
-1. Missing type hints on some methods
-2. No validation for empty title/author
-3. Could benefit from better error handling"
+Copilot CLI: "クラスは機能的ですが、以下の点に気づきました：
+1. 一部のメソッドに型ヒントがない
+2. 空の title/author に対するバリデーションがない
+3. エラーハンドリングの改善が有効"
 
 > Add type hints to all methods
 
-Copilot CLI: "Here's the class with complete type hints..."
-[Shows typed version]
+Copilot CLI: "完全な型ヒントを追加したクラスはこちらです..."
+[型付きバージョンを表示]
 
 > Now improve error handling
 
-Copilot CLI: "Building on the typed version, here's improved error handling..."
-[Adds validation and proper exceptions]
+Copilot CLI: "型付きバージョンをベースに、改善されたエラーハンドリングはこちらです..."
+[バリデーションと適切な例外を追加]
 
 > Generate tests for this final version
 
-Copilot CLI: "Based on the class with types and error handling..."
-[Generates comprehensive tests]
+Copilot CLI: "型とエラーハンドリングを備えたクラスに基づいて..."
+[包括的なテストを生成]
 ```
 
-Notice how each prompt builds on the previous work. This is the power of context.
+各プロンプトが前の作業の上に構築されていることに注目してください。これがコンテキストの力です。
 
 </details>
 
 <details>
-<summary><strong>Understanding Context Windows</strong></summary>
+<summary><strong>context window を理解する</strong></summary>
 <a id="understanding-context-windows"></a>
 
-### Understanding Context Windows
+### context window を理解する
 
-You already know `/context` and `/clear` from the essentials. Here's the deeper picture of how context windows work.
+基本編で `/context` と `/clear` は既に学びました。ここでは context window がどのように機能するかをより深く見ていきます。
 
-Every AI has a "context window," which is the amount of text it can consider at once.
+すべての AI には「context window」があり、一度に考慮できるテキストの量のことです。
 
 <img src="images/context-window-visualization.png" alt="Context Window Visualization" width="800"/>
 
-*The context window is like a desk: it can only hold so much at once. Files, conversation history, and system prompts all take space.*
+*context window はデスクのようなものです：一度に置ける量には限りがあります。ファイル、会話履歴、システムプロンプトのすべてがスペースを占有します。*
 
-#### What Happens at the Limit
+#### 制限に達したときの動作
 
 ```bash
 copilot
@@ -529,140 +529,140 @@ copilot
 
 Context usage: 45,000 / 128,000 tokens (35%)
 
-# As you add more files and conversation, this grows
+# ファイルや会話を追加するにつれて、使用量が増えていきます
 
 > @large-codebase/
 
 Context usage: 120,000 / 128,000 tokens (94%)
 
-# Warning: Approaching context limit
+# 警告: コンテキスト制限に近づいています
 
 > @another-large-file.py
 
 Context limit reached. Older context will be summarized.
 ```
 
-#### The `/compact` Command
+#### `/compact` コマンド
 
-When your context is getting full but you don't want to lose the conversation, `/compact` summarizes your history to free up tokens:
+コンテキストがいっぱいになりつつあるが会話を失いたくない場合、`/compact` は履歴を要約してトークンを解放します：
 
 ```bash
 copilot
 
 > /compact
-# Summarizes conversation history, freeing up context space
-# Your key findings and decisions are preserved
+# 会話履歴を要約し、コンテキストスペースを解放します
+# 重要な発見や決定は保持されます
 ```
 
-#### Context Efficiency Tips
+#### コンテキスト効率化のヒント
 
-| Situation | Action | Why |
-|-----------|--------|-----|
-| Starting new topic | `/clear` | Removes irrelevant context |
-| Long conversation | `/compact` | Summarizes history, frees tokens |
-| Need specific file | `@file.py` not `@folder/` | Loads only what you need |
-| Hitting limits | Start new session | Fresh 128K context |
-| Multiple topics | Use `/rename` per topic | Easy to resume right session |
+| 状況 | アクション | 理由 |
+|------|----------|------|
+| 新しいトピックを開始 | `/clear` | 関係ないコンテキストを除去 |
+| 長い会話 | `/compact` | 履歴を要約し、トークンを解放 |
+| 特定のファイルが必要 | `@folder/` ではなく `@file.py` | 必要なものだけをロード |
+| 制限に到達 | 新しいセッションを開始 | 新鮮な 128K コンテキスト |
+| 複数のトピック | トピックごとに `/rename` | 適切なセッションを簡単に再開 |
 
-#### Best Practices for Large Codebases
+#### 大規模コードベースのベストプラクティス
 
-1. **Be specific**: `@samples/book-app-project/books.py` instead of `@samples/book-app-project/`
-2. **Clear between topics**: Use `/clear` when switching focus
-3. **Use `/compact`**: Summarize conversation to free up context
-4. **Use multiple sessions**: One session per feature or topic
+1. **具体的に指定する**: `@samples/book-app-project/` ではなく `@samples/book-app-project/books.py`
+2. **トピック間でクリアする**: フォーカスを切り替えるときは `/clear` を使う
+3. **`/compact` を使う**: 会話を要約してコンテキストを解放する
+4. **複数のセッションを使う**: 機能やトピックごとに1セッション
 
 </details>
 
 <details>
-<summary><strong>Choosing What to Reference</strong></summary>
+<summary><strong>何を参照すべきか選ぶ</strong></summary>
 <a id="choosing-what-to-reference"></a>
 
-### Choosing What to Reference
+### 何を参照すべきか選ぶ
 
-Not all files are equal when it comes to context. Here's how to choose wisely:
+コンテキストに関して言えば、すべてのファイルが同じ価値を持つわけではありません。賢い選び方をしましょう：
 
-#### File Size Considerations
+#### ファイルサイズの考慮事項
 
-| File Size | Approximate [Tokens](../GLOSSARY.md#token) | Strategy |
+| ファイルサイズ | おおよその[トークン](../GLOSSARY.md#token)数 | 戦略 |
 |-----------|-------------------|----------|
-| Small (<100 lines) | ~500-1,500 tokens | Reference freely |
-| Medium (100-500 lines) | ~1,500-7,500 tokens | Reference specific files |
-| Large (500+ lines) | 7,500+ tokens | Be selective, use specific files |
-| Very Large (1000+ lines) | 15,000+ tokens | Consider splitting or targeting sections |
+| 小（100行未満） | 約500〜1,500トークン | 自由に参照 |
+| 中（100〜500行） | 約1,500〜7,500トークン | 特定のファイルを参照 |
+| 大（500行以上） | 7,500トークン以上 | 選択的に、特定のファイルを使用 |
+| 非常に大きい（1000行以上） | 15,000トークン以上 | 分割するかセクションを絞ることを検討 |
 
-**Concrete examples:**
-- The book app's 4 Python files combined ≈ 2,000-3,000 tokens
-- A typical Python module (200 lines) ≈ 3,000 tokens
-- A Flask API file (400 lines) ≈ 6,000 tokens
-- Your package.json ≈ 200-500 tokens
-- A short prompt + response ≈ 500-1,500 tokens
+**具体例：**
+- ブックアプリの4つの Python ファイル合計 ≈ 2,000〜3,000トークン
+- 典型的な Python モジュール（200行）≈ 3,000トークン
+- Flask API ファイル（400行）≈ 6,000トークン
+- package.json ≈ 200〜500トークン
+- 短いプロンプト + レスポンス ≈ 500〜1,500トークン
 
-> 💡 **Quick estimate for code:** Multiply lines of code by ~15 to get approximate tokens. Keep in mind this is only an estimate.
+> 💡 **コードのざっくり見積もり:** コード行数に約15を掛けるとおおよそのトークン数になります。あくまで目安であることを覚えておいてください。
 
-#### What to Include vs. Exclude
+#### 含めるべきもの vs 除外すべきもの
 
-**High value** (include these):
-- Entry points (`book_app.py`, `main.py`, `app.py`)
-- The specific files you're asking about
-- Files directly imported by your target file
-- Configuration files (`requirements.txt`, `pyproject.toml`)
-- Data models or dataclasses
+**価値が高い**（これらを含める）：
+- エントリーポイント (`book_app.py`, `main.py`, `app.py`)
+- 質問の対象となっている特定のファイル
+- 対象ファイルが直接インポートしているファイル
+- 設定ファイル (`requirements.txt`, `pyproject.toml`)
+- データモデルやデータクラス
 
-**Lower value** (consider excluding):
-- Generated files (compiled output, bundled assets)
-- Node modules or vendor directories
-- Large data files or fixtures
-- Files unrelated to your question
+**価値が低い**（除外を検討）：
+- 生成されたファイル（コンパイル出力、バンドルされたアセット）
+- node modules やベンダーディレクトリ
+- 大きなデータファイルやフィクスチャ
+- 質問に関係のないファイル
 
-#### The Specificity Spectrum
+#### 具体性のスペクトラム
 
 ```
-Less specific ────────────────────────► More specific
+抽象的 ────────────────────────► 具体的
 @samples/book-app-project/                      @samples/book-app-project/books.py:47-52
      │                                       │
-     └─ Scans everything                     └─ Just what you need
-        (uses more context)                      (preserves context)
+     └─ すべてをスキャン                      └─ 必要なものだけ
+        (コンテキストを多く消費)                   (コンテキストを節約)
 ```
 
-**When to go broad** (`@samples/book-app-project/`):
-- Initial codebase exploration
-- Finding patterns across many files
-- Architecture reviews
+**広く指定すべきとき** (`@samples/book-app-project/`)：
+- 初回のコードベース探索
+- 多数のファイルにわたるパターン発見
+- アーキテクチャレビュー
 
-**When to go specific** (`@samples/book-app-project/books.py`):
-- Debugging a particular issue
-- Code review of a specific file
-- Asking about a single function
+**具体的に指定すべきとき** (`@samples/book-app-project/books.py`)：
+- 特定の問題のデバッグ
+- 特定ファイルのコードレビュー
+- 単一の関数についての質問
 
-#### Practical Example: Staged Context Loading
+#### 実践例：段階的なコンテキストロード
 
 ```bash
 copilot
 
-# Step 1: Start with structure
+# ステップ1: 構造から始める
 > @package.json What frameworks does this project use?
 
-# Step 2: Narrow based on answer
+# ステップ2: 回答に基づいて絞り込む
 > @samples/book-app-project/ Show me the project structure
 
-# Step 3: Focus on what matters
+# ステップ3: 重要なものにフォーカスする
 > @samples/book-app-project/books.py Review the BookCollection class
 
-# Step 4: Add related files only as needed
+# ステップ4: 必要に応じて関連ファイルを追加する
 > @samples/book-app-project/book_app.py @samples/book-app-project/books.py How does the CLI use the BookCollection?
 ```
 
-This staged approach keeps context focused and efficient.
+この段階的なアプローチにより、コンテキストを効率的に絞り込めます。
 
 </details>
 
 <details>
-<summary><strong>Working with Images</strong></summary>
+<summary><strong>画像を扱う</strong></summary>
 <a id="working-with-images"></a>
 
-### Working with Images
+### 画像を扱う
 
-You can include images in your conversations using the `@` syntax, or simply **paste from your clipboard** (Cmd+V / Ctrl+V). Copilot CLI can analyze screenshots, mockups, and diagrams to help with UI debugging, design implementation, and error analysis.
+`@` 構文を使って会話に画像を含めることができます。また、**クリップボードから貼り付ける**だけでもOKです（Cmd+V / Ctrl+V）。Copilot CLI はスクリーンショット、モックアップ、ダイアグラムを分析して、UI デバッグ、デザイン実装、エラー分析をサポートできます。
 
 ```bash
 copilot
@@ -672,40 +672,40 @@ copilot
 > @images/mockup.png Write the HTML and CSS to match this design. Place it in a new file called index.html and put the CSS in styles.css.
 ```
 
-> 📖 **Learn more**: See [Additional Context Features](../appendices/additional-context.md#working-with-images) for supported formats, practical use cases, and tips for combining images with code.
+> 📖 **もっと学ぶ**: サポートされるフォーマット、実践的なユースケース、画像とコードを組み合わせるヒントについては [Additional Context Features](../appendices/additional-context.md#working-with-images) を参照してください。
 
 </details>
 
 ---
 
-# Practice
+# 実践練習
 
 <img src="../images/practice.png" alt="Warm desk setup with monitor showing code, lamp, coffee cup, and headphones ready for hands-on practice" width="800"/>
 
-Time to apply your context and session management skills.
+コンテキストとセッション管理のスキルを実践する時間です。
 
 ---
 
-## ▶️ Try It Yourself
+## ▶️ 自分で試してみよう
 
-### Full Project Review
+### プロジェクト全体のレビュー
 
-The course includes sample files you can review directly. Start copilot and run the prompt shown next:
+このコースにはそのままレビューできるサンプルファイルが含まれています。copilot を起動して、次のプロンプトを実行してみましょう：
 
 ```bash
 copilot
 
 > @samples/book-app-project/ Give me a code quality review of this project
 
-# Copilot CLI will identify issues like:
-# - Duplicate display functions
-# - Missing input validation
-# - Inconsistent error handling
+# Copilot CLI が以下のような問題を特定します：
+# - 重複する表示関数
+# - 入力バリデーションの欠如
+# - 一貫性のないエラーハンドリング
 ```
 
-> 💡 **Want to try with your own files?** Create a small Python project (`mkdir -p my-project/src`), add some .py files, then use `@my-project/src/` to review them. You can ask copilot to create sample code for you if you'd like!
+> 💡 **自分のファイルで試したいですか？** 小さな Python プロジェクトを作成し（`mkdir -p my-project/src`）、いくつかの .py ファイルを追加して、`@my-project/src/` でレビューしてみましょう。サンプルコードの作成を copilot に頼むこともできます！
 
-### Session Workflow
+### セッションワークフロー
 
 ```bash
 copilot
@@ -713,13 +713,13 @@ copilot
 > /rename book-app-review
 > @samples/book-app-project/books.py Let's add input validation for empty titles
 
-[Copilot CLI suggests validation approach]
+[Copilot CLI がバリデーションのアプローチを提案]
 
 > Implement that fix
 > Now consolidate the duplicate display functions in @samples/book-app-project/
 > /exit
 
-# Later - resume where you left off
+# 後で - 中断したところから再開
 copilot --continue
 
 > Generate tests for the changes we made
@@ -727,45 +727,45 @@ copilot --continue
 
 ---
 
-After completing the demos, try these variations:
+デモを完了したら、以下のバリエーションを試してみましょう：
 
-1. **Cross-File Challenge**: Analyze how book_app.py and books.py work together:
+1. **クロスファイルチャレンジ**: book_app.py と books.py がどのように連携しているか分析する:
    ```bash
    copilot
    > @samples/book-app-project/book_app.py @samples/book-app-project/books.py
    > What's the relationship between these files? Are there any code smells?
    ```
 
-2. **Session Challenge**: Start a session, name it with `/rename my-first-session`, work on something, exit with `/exit`, then run `copilot --continue`. Does it remember what you were doing?
+2. **セッションチャレンジ**: セッションを開始し、`/rename my-first-session` で名前を付け、何か作業をして、`/exit` で終了し、`copilot --continue` を実行します。何をしていたか覚えていますか？
 
-3. **Context Challenge**: Run `/context` mid-session. How many tokens are you using? Try `/compact` and check again. (See [Understanding Context Windows](#understanding-context-windows) in Going Deeper for more on `/compact`.)
+3. **コンテキストチャレンジ**: セッション中に `/context` を実行します。何トークン使っていますか？ `/compact` を試してもう一度確認しましょう。（`/compact` の詳細は「さらに深く学ぶ」の [context window を理解する](#understanding-context-windows) を参照してください。）
 
-**Self-Check**: You understand context when you can explain why `@folder/` is more powerful than opening each file individually.
+**セルフチェック**: `@folder/` が各ファイルを個別に開くよりもなぜ強力なのかを説明できれば、コンテキストを理解できています。
 
 ---
 
-## 📝 Assignment
+## 📝 課題
 
-### Main Challenge: Trace the Data Flow
+### メインチャレンジ：データフローを追跡する
 
-The hands-on examples focused on code quality reviews and input validation. Now practice the same context skills on a different task, tracing how data moves through the app:
+ハンズオンの例ではコード品質レビューと入力バリデーションに焦点を当てました。ここでは同じコンテキストスキルを別のタスク、つまりアプリ内のデータの流れを追跡する練習をします：
 
-1. Start an interactive session: `copilot`
-2. Reference `books.py` and `book_app.py` together:
+1. インタラクティブセッションを開始する: `copilot`
+2. `books.py` と `book_app.py` を一緒に参照する:
    `@samples/book-app-project/books.py @samples/book-app-project/book_app.py Trace how a book goes from user input to being saved in data.json. What functions are involved at each step?`
-3. Bring in the data file for additional context:
+3. 追加のコンテキストとしてデータファイルを含める:
    `@samples/book-app-project/data.json What happens if this JSON file is missing or corrupted? Which functions would fail?`
-4. Ask for a cross-file improvement:
+4. クロスファイルの改善を依頼する:
    `@samples/book-app-project/books.py @samples/book-app-project/utils.py Suggest a consistent error-handling strategy that works across both files.`
-5. Rename the session: `/rename data-flow-analysis`
-6. Exit with `/exit`, then resume with `copilot --continue` and ask a follow-up question about the data flow
+5. セッション名を変更する: `/rename data-flow-analysis`
+6. `/exit` で終了し、`copilot --continue` で再開してデータフローについてフォローアップの質問をする
 
-**Success criteria**: You can trace data across multiple files, resume a named session, and get cross-file suggestions.
+**成功基準**: 複数ファイルにまたがるデータを追跡でき、名前付きセッションを再開でき、クロスファイルの提案を得られること。
 
 <details>
-<summary>💡 Hints (click to expand)</summary>
+<summary>💡 ヒント（クリックして展開）</summary>
 
-**Getting started:**
+**始め方：**
 ```bash
 cd /path/to/copilot-cli-for-beginners
 copilot
@@ -775,99 +775,99 @@ copilot
 > /exit
 ```
 
-Then resume with: `copilot --continue`
+その後 `copilot --continue` で再開します。
 
-**Useful commands:**
-- `@file.py` - Reference a single file
-- `@folder/` - Reference all files in a folder (note the trailing `/`)
-- `/context` - Check how much context you're using
-- `/rename <name>` - Name your session for easy resuming
+**便利なコマンド：**
+- `@file.py` - 単一ファイルを参照
+- `@folder/` - フォルダ内のすべてのファイルを参照（末尾の `/` に注意）
+- `/context` - コンテキストの使用量を確認
+- `/rename <name>` - セッションに名前を付けて簡単に再開
 
 </details>
 
-### Bonus Challenge: Context Limits
+### ボーナスチャレンジ：コンテキストの制限
 
-1. Reference all the book app files at once with `@samples/book-app-project/`
-2. Ask several detailed questions about different files (`books.py`, `utils.py`, `book_app.py`, `data.json`)
-3. Run `/context` to see usage. How quickly does it fill up?
-4. Practice using `/compact` to reclaim space, then continue the conversation
-5. Try being more specific with file references (e.g., `@samples/book-app-project/books.py` instead of the whole folder) and see how it affects context usage
+1. `@samples/book-app-project/` でブックアプリのすべてのファイルを一度に参照する
+2. 異なるファイル（`books.py`、`utils.py`、`book_app.py`、`data.json`）について詳細な質問をいくつかする
+3. `/context` を実行して使用量を確認する。どのくらい素早く埋まりますか？
+4. `/compact` を使ってスペースを回収する練習をし、その後会話を続ける
+5. より具体的なファイル参照（フォルダ全体ではなく `@samples/book-app-project/books.py`）を試して、コンテキスト使用量への影響を確認する
 
 ---
 
 <details>
-<summary>🔧 <strong>Common Mistakes & Troubleshooting</strong> (click to expand)</summary>
+<summary>🔧 <strong>よくある間違いとトラブルシューティング</strong>（クリックして展開）</summary>
 
-### Common Mistakes
+### よくある間違い
 
-| Mistake | What Happens | Fix |
-|---------|--------------|-----|
-| Forgetting `@` before filenames | Copilot CLI treats "books.py" as plain text | Use `@samples/book-app-project/books.py` to reference files |
-| Expecting sessions to persist automatically | Starting `copilot` fresh loses all previous context | Use `--continue` (last session) or `--resume` (pick a session) |
-| Referencing files outside current directory | "Permission denied" or "File not found" errors | Use `/add-dir /path/to/directory` to grant access |
-| Not using `/clear` when switching topics | Old context confuses responses about the new topic | Run `/clear` before starting a different task |
+| 間違い | 何が起こるか | 修正方法 |
+|---------|------------|---------|
+| ファイル名の前の `@` を忘れる | Copilot CLI が "books.py" をプレーンテキストとして扱う | ファイルを参照するには `@samples/book-app-project/books.py` を使う |
+| セッションが自動的に保持されると思い込む | `copilot` を新しく起動すると以前のコンテキストがすべて失われる | `--continue`（最新セッション）または `--resume`（セッションを選択）を使う |
+| カレントディレクトリ外のファイルを参照する | "Permission denied" や "File not found" エラー | `/add-dir /path/to/directory` でアクセスを許可する |
+| トピック切り替え時に `/clear` を使わない | 古いコンテキストが新しいトピックのレスポンスを混乱させる | 別のタスクを始める前に `/clear` を実行する |
 
-### Troubleshooting
+### トラブルシューティング
 
-**"File not found" errors** - Make sure you're in the correct directory:
+**"File not found" エラー** - 正しいディレクトリにいることを確認してください：
 
 ```bash
-pwd  # Check current directory
-ls   # List files
+pwd  # カレントディレクトリを確認
+ls   # ファイル一覧を表示
 
-# Then start copilot and use relative paths
+# copilot を起動して相対パスを使う
 copilot
 
 > Review @samples/book-app-project/books.py
 ```
 
-**"Permission denied"** - Add the directory to your allowed list:
+**"Permission denied"** - 許可リストにディレクトリを追加する：
 
 ```bash
 copilot --add-dir /path/to/directory
 
-# Or in a session:
+# またはセッション内で：
 > /add-dir /path/to/directory
 ```
 
-**Context fills up too quickly**:
-- Be more specific with file references
-- Use `/clear` between different topics
-- Split work across multiple sessions
+**コンテキストがすぐにいっぱいになる**：
+- より具体的なファイル参照を使う
+- 異なるトピック間で `/clear` を使う
+- 作業を複数のセッションに分割する
 
 </details>
 
 ---
 
-# Summary
+# まとめ
 
-## 🔑 Key Takeaways
+## 🔑 重要ポイント
 
-1. **`@` syntax** gives Copilot CLI context about files, directories, and images
-2. **Multi-turn conversations** build on each other as context accumulates
-3. **Sessions auto-save**: use `--continue` or `--resume` to pick up where you left off
-4. **Context windows** have limits: manage them with `/context`, `/clear`, and `/compact`
-5. **Permission flags** (`--add-dir`, `--allow-all`) control multi-directory access. Use them wisely!
-6. **Image references** (`@screenshot.png`) help debug UI issues visually
+1. **`@` 構文** は Copilot CLI にファイル、ディレクトリ、画像のコンテキストを与えます
+2. **マルチターン会話** はコンテキストが蓄積されるにつれて互いに積み上がっていきます
+3. **セッションは自動保存**: `--continue` または `--resume` で中断したところから再開できます
+4. **context window** には制限があります: `/context`、`/clear`、`/compact` で管理しましょう
+5. **パーミッションフラグ** (`--add-dir`、`--allow-all`) がマルチディレクトリアクセスを制御します。賢く使いましょう！
+6. **画像参照** (`@screenshot.png`) は UI の問題を視覚的にデバッグするのに役立ちます
 
-> 📚 **Official Documentation**: [Use Copilot CLI](https://docs.github.com/copilot/how-tos/copilot-cli/use-copilot-cli) for the complete reference on context, sessions, and working with files.
+> 📚 **公式ドキュメント**: コンテキスト、セッション、ファイル操作の完全なリファレンスは [Use Copilot CLI](https://docs.github.com/copilot/how-tos/copilot-cli/use-copilot-cli) を参照してください。
 
-> 📋 **Quick Reference**: See the [GitHub Copilot CLI command reference](https://docs.github.com/en/copilot/reference/cli-command-reference) for a complete list of commands and shortcuts.
-
----
-
-## ➡️ What's Next
-
-Now that you can give Copilot CLI context, let's put it to work on real development tasks. The context techniques you just learned (file references, cross-file analysis, and session management) are the foundation for the powerful workflows in the next chapter.
-
-In **[Chapter 03: Development Workflows](../03-development-workflows/README.md)**, you'll learn:
-
-- Code review workflows
-- Refactoring patterns
-- Debugging assistance
-- Test generation
-- Git integration
+> 📋 **クイックリファレンス**: コマンドとショートカットの完全な一覧は [GitHub Copilot CLI command reference](https://docs.github.com/en/copilot/reference/cli-command-reference) を参照してください。
 
 ---
 
-**[← Back to Chapter 01](../01-setup-and-first-steps/README.md)** | **[Continue to Chapter 03 →](../03-development-workflows/README.md)**
+## ➡️ 次のステップ
+
+Copilot CLI にコンテキストを与える方法がわかったので、実際の開発タスクに活用しましょう。ここで学んだコンテキスト技法（ファイル参照、クロスファイル分析、セッション管理）は、次の章で紹介する強力なワークフローの基盤となります。
+
+**[Chapter 03: Development Workflows](../03-development-workflows/README.md)** では、以下を学びます：
+
+- コードレビューのワークフロー
+- リファクタリングパターン
+- デバッグアシスタンス
+- テスト生成
+- Git 連携
+
+---
+
+**[← Chapter 01 に戻る](../01-setup-and-first-steps/README.md)** | **[Chapter 03 に進む →](../03-development-workflows/README.md)**
